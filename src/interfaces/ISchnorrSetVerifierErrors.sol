@@ -24,7 +24,7 @@ interface ISchnorrSetVerifierErrors {
     /// @notice reverts in publishAnswer() when signers are not sorted
     error InvalidSignersOrder();
 
-    /// @notice reverts in publishAnswer() when number of signatures is less than min signatures threshold
+    /// @notice reverts in verifySignature() when number of signatures is less than min signatures threshold
     /// @param numberSigners number of signatures
     /// @param minSignatureThreshold min signatures threshold
     error NotEnoughSignatures(uint256 numberSigners, uint256 minSignatureThreshold);

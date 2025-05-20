@@ -5,7 +5,7 @@ pragma solidity >=0.8.0;
 /// @notice Defines structs used by AggreSchnorrSetVerifiergator contract
 interface ISchnorrSetVerifierStructs {
     /// @notice Schnorr signature data struct
-    /// @dev signers array must be sorted in ascending order
+    /// @dev signers indexes array must be sorted in ascending order
     /// @param signature aggregated signature
     /// @param commitment commitment
     /// @param signers array of signers

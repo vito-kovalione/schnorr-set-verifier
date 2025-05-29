@@ -9,8 +9,9 @@ import {LibSecp256k1} from "../src/libs/LibSecp256k1.sol";
 import {LibSchnorr} from "../src/libs/LibSchnorr.sol";
 import {LibSchnorrExtended} from "./libs/LibSchnorrExtended.sol";
 import {LibSecp256k1Extended} from "./libs/LibSecp256k1Extended.sol";
-import {ISchnorrSetVerifierErrors} from "../src/interfaces/ISchnorrSetVerifierErrors.sol";
-import {ISchnorrSetVerifierStructs} from "../src/interfaces/ISchnorrSetVerifierStructs.sol";
+import {ISchnorrSetVerifier} from "../src/interfaces/ISchnorrSetVerifier.sol";
+import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract SchnorrSetVerifierTest is Test {
     using LibSchnorr for LibSecp256k1.Point;
@@ -27,7 +28,9 @@ contract SchnorrSetVerifierTest is Test {
         owner = makeAddr("owner");
         nonOwner = makeAddr("nonOwner");
         vm.startPrank(owner);
-        verifier = new SchnorrSetVerifier();
+        verifier = new SchnorrSetVerifier(owner);
+        Ownable2Step(address(verifier)).transferOwnership(owner);
+        Ownable2Step(address(verifier)).acceptOwnership();
         vm.stopPrank();
     }
 
@@ -45,14 +48,14 @@ contract SchnorrSetVerifierTest is Test {
 
     function test_setMinSignaturesThreshold_RevertIfNotOwner() public {
         vm.startPrank(nonOwner);
-        vm.expectRevert(ISchnorrSetVerifierErrors.NotOwner.selector);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
         verifier.setMinSignaturesThreshold(3);
         vm.stopPrank();
     }
 
     function test_setMinSignaturesThreshold_RevertIfZero() public {
         vm.startPrank(owner);
-        vm.expectRevert(ISchnorrSetVerifierErrors.ZeroValue.selector);
+        vm.expectRevert(ISchnorrSetVerifier.ZeroValue.selector);
         verifier.setMinSignaturesThreshold(0);
         vm.stopPrank();
     }
@@ -80,7 +83,7 @@ contract SchnorrSetVerifierTest is Test {
         });
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(ISchnorrSetVerifierErrors.NotOwner.selector);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
         verifier.addSigner(pubKey);
         vm.stopPrank();
     }
@@ -94,7 +97,7 @@ contract SchnorrSetVerifierTest is Test {
 
         vm.startPrank(owner);
         verifier.addSigner(pubKey);
-        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifierErrors.SignerAlreadyAdded.selector, signer));
+        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifier.SignerAlreadyAdded.selector, signer));
         verifier.addSigner(pubKey);
         vm.stopPrank();
     }
@@ -127,14 +130,14 @@ contract SchnorrSetVerifierTest is Test {
         vm.stopPrank();
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(ISchnorrSetVerifierErrors.NotOwner.selector);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
         verifier.removeSigner(signer);
         vm.stopPrank();
     }
 
     function test_RemoveSigner_RevertIfNotSigner() public {
         vm.startPrank(owner);
-        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifierErrors.NotSigner.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifier.NotSigner.selector, address(1)));
         verifier.removeSigner(address(1));
         vm.stopPrank();
     }
@@ -181,7 +184,7 @@ contract SchnorrSetVerifierTest is Test {
         signerIndices[1] = 2;
         signerIndices[2] = 3;
 
-        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifierStructs.SchnorrSignature({
+        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
             signature: bytes32(signature),
             commitment: commitment,
             signers: signerIndices
@@ -216,14 +219,14 @@ contract SchnorrSetVerifierTest is Test {
         signerIndices[1] = 2;
         signerIndices[2] = 3;
 
-        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifierStructs.SchnorrSignature({
+        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
             signature: bytes32(0), // Invalid signature
             commitment: address(1), // Invalid commitment
             signers: signerIndices
         });
 
         // Verify signature should revert
-        vm.expectRevert(ISchnorrSetVerifierErrors.InvalidSignature.selector);
+        vm.expectRevert(ISchnorrSetVerifier.InvalidSignature.selector);
         verifier.verifySignature(message, schnorrData);
     }
 
@@ -254,14 +257,14 @@ contract SchnorrSetVerifierTest is Test {
         signerIndices[0] = 1;
         signerIndices[1] = 2;
 
-        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifierStructs.SchnorrSignature({
+        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
             signature: bytes32(signature),
             commitment: commitment,
             signers: signerIndices
         });
 
         // Verify signature should revert
-        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifierErrors.NotEnoughSignatures.selector, 2, 3));
+        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifier.NotEnoughSignatures.selector, 2, 3));
         verifier.verifySignature(message, schnorrData);
     }
 

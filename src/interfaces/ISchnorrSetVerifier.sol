@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import {LibSecp256k1} from "../libs/LibSecp256k1.sol";
+import {LibSecp256k1} from "scribe/src/libs/LibSecp256k1.sol";
 
 /// @title SchnorrSetVerifier interface
 /// @notice Interface for a smart contract that verifies Schnorr signatures from a set of authorized signers

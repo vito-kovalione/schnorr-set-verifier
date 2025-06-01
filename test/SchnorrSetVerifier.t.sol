@@ -4,14 +4,15 @@ pragma solidity >=0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {Vm} from "forge-std/Vm.sol";
 
-import {SchnorrSetVerifier} from "../src/SchnorrSetVerifier.sol";
-import {LibSecp256k1} from "../src/libs/LibSecp256k1.sol";
-import {LibSchnorr} from "../src/libs/LibSchnorr.sol";
 import {LibSchnorrExtended} from "./libs/LibSchnorrExtended.sol";
 import {LibSecp256k1Extended} from "./libs/LibSecp256k1Extended.sol";
-import {ISchnorrSetVerifier} from "../src/interfaces/ISchnorrSetVerifier.sol";
+import {LibSecp256k1} from "scribe/src/libs/LibSecp256k1.sol";
+import {LibSchnorr} from "scribe/src/libs/LibSchnorr.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+
+import {ISchnorrSetVerifier} from "../src/interfaces/ISchnorrSetVerifier.sol";
+import {SchnorrSetVerifier} from "../src/SchnorrSetVerifier.sol";
 
 contract SchnorrSetVerifierTest is Test {
     using LibSchnorr for LibSecp256k1.Point;
@@ -48,7 +49,12 @@ contract SchnorrSetVerifierTest is Test {
 
     function test_setMinSignaturesThreshold_RevertIfNotOwner() public {
         vm.startPrank(nonOwner);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector,
+                nonOwner
+            )
+        );
         verifier.setMinSignaturesThreshold(3);
         vm.stopPrank();
     }
@@ -61,10 +67,7 @@ contract SchnorrSetVerifierTest is Test {
     }
 
     function test_AddSigner() public {
-        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
+        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({x: 1, y: 2});
         address signer = pubKey.toAddress();
 
         vm.startPrank(owner);
@@ -77,36 +80,37 @@ contract SchnorrSetVerifierTest is Test {
     }
 
     function test_AddSigner_RevertIfNotOwner() public {
-        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
+        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({x: 1, y: 2});
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector,
+                nonOwner
+            )
+        );
         verifier.addSigner(pubKey);
         vm.stopPrank();
     }
 
     function test_AddSigner_RevertIfAlreadyAdded() public {
-        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
+        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({x: 1, y: 2});
         address signer = pubKey.toAddress();
 
         vm.startPrank(owner);
         verifier.addSigner(pubKey);
-        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifier.SignerAlreadyAdded.selector, signer));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ISchnorrSetVerifier.SignerAlreadyAdded.selector,
+                signer
+            )
+        );
         verifier.addSigner(pubKey);
         vm.stopPrank();
     }
 
     function test_RemoveSigner() public {
-        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
+        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({x: 1, y: 2});
         address signer = pubKey.toAddress();
 
         vm.startPrank(owner);
@@ -119,10 +123,7 @@ contract SchnorrSetVerifierTest is Test {
     }
 
     function test_RemoveSigner_RevertIfNotOwner() public {
-        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
+        LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({x: 1, y: 2});
         address signer = pubKey.toAddress();
 
         vm.startPrank(owner);
@@ -130,27 +131,31 @@ contract SchnorrSetVerifierTest is Test {
         vm.stopPrank();
 
         vm.startPrank(nonOwner);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector,
+                nonOwner
+            )
+        );
         verifier.removeSigner(signer);
         vm.stopPrank();
     }
 
     function test_RemoveSigner_RevertIfNotSigner() public {
         vm.startPrank(owner);
-        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifier.NotSigner.selector, address(1)));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ISchnorrSetVerifier.NotSigner.selector,
+                address(1)
+            )
+        );
         verifier.removeSigner(address(1));
         vm.stopPrank();
     }
 
     function test_GetSigners() public {
-        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
-        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({
-            x: 3,
-            y: 4
-        });
+        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({x: 1, y: 2});
+        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({x: 3, y: 4});
         address signer1 = pubKey1.toAddress();
         address signer2 = pubKey2.toAddress();
 
@@ -184,11 +189,12 @@ contract SchnorrSetVerifierTest is Test {
         signerIndices[1] = 2;
         signerIndices[2] = 3;
 
-        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
-            signature: bytes32(signature),
-            commitment: commitment,
-            signers: signerIndices
-        });
+        SchnorrSetVerifier.SchnorrSignature
+            memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
+                signature: bytes32(signature),
+                commitment: commitment,
+                signers: signerIndices
+            });
 
         // Verify signature
         verifier.verifySignature(message, schnorrData);
@@ -219,11 +225,12 @@ contract SchnorrSetVerifierTest is Test {
         signerIndices[1] = 2;
         signerIndices[2] = 3;
 
-        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
-            signature: bytes32(0), // Invalid signature
-            commitment: address(1), // Invalid commitment
-            signers: signerIndices
-        });
+        SchnorrSetVerifier.SchnorrSignature
+            memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
+                signature: bytes32(0), // Invalid signature
+                commitment: address(1), // Invalid commitment
+                signers: signerIndices
+            });
 
         // Verify signature should revert
         vm.expectRevert(ISchnorrSetVerifier.InvalidSignature.selector);
@@ -257,31 +264,29 @@ contract SchnorrSetVerifierTest is Test {
         signerIndices[0] = 1;
         signerIndices[1] = 2;
 
-        SchnorrSetVerifier.SchnorrSignature memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
-            signature: bytes32(signature),
-            commitment: commitment,
-            signers: signerIndices
-        });
+        SchnorrSetVerifier.SchnorrSignature
+            memory schnorrData = ISchnorrSetVerifier.SchnorrSignature({
+                signature: bytes32(signature),
+                commitment: commitment,
+                signers: signerIndices
+            });
 
         // Verify signature should revert
-        vm.expectRevert(abi.encodeWithSelector(ISchnorrSetVerifier.NotEnoughSignatures.selector, 2, 3));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ISchnorrSetVerifier.NotEnoughSignatures.selector,
+                2,
+                3
+            )
+        );
         verifier.verifySignature(message, schnorrData);
     }
 
     function test_RemoveSigner_FromMiddle() public {
         // Add three signers
-        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
-        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({
-            x: 3,
-            y: 4
-        });
-        LibSecp256k1.Point memory pubKey3 = LibSecp256k1.Point({
-            x: 5,
-            y: 6
-        });
+        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({x: 1, y: 2});
+        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({x: 3, y: 4});
+        LibSecp256k1.Point memory pubKey3 = LibSecp256k1.Point({x: 5, y: 6});
         address signer1 = pubKey1.toAddress();
         address signer2 = pubKey2.toAddress();
         address signer3 = pubKey3.toAddress();
@@ -290,7 +295,7 @@ contract SchnorrSetVerifierTest is Test {
         verifier.addSigner(pubKey1);
         verifier.addSigner(pubKey2);
         verifier.addSigner(pubKey3);
-        
+
         // Remove middle signer
         verifier.removeSigner(signer2);
         vm.stopPrank();
@@ -310,21 +315,15 @@ contract SchnorrSetVerifierTest is Test {
 
     function test_RemoveSigner_LastSigner() public {
         // Add two signers
-        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
-        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({
-            x: 3,
-            y: 4
-        });
+        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({x: 1, y: 2});
+        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({x: 3, y: 4});
         address signer1 = pubKey1.toAddress();
         address signer2 = pubKey2.toAddress();
 
         vm.startPrank(owner);
         verifier.addSigner(pubKey1);
         verifier.addSigner(pubKey2);
-        
+
         // Remove last signer
         verifier.removeSigner(signer2);
         vm.stopPrank();
@@ -342,21 +341,15 @@ contract SchnorrSetVerifierTest is Test {
 
     function test_RemoveSigner_FirstSigner() public {
         // Add two signers
-        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
-        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({
-            x: 3,
-            y: 4
-        });
+        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({x: 1, y: 2});
+        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({x: 3, y: 4});
         address signer1 = pubKey1.toAddress();
         address signer2 = pubKey2.toAddress();
 
         vm.startPrank(owner);
         verifier.addSigner(pubKey1);
         verifier.addSigner(pubKey2);
-        
+
         // Remove first signer
         verifier.removeSigner(signer1);
         vm.stopPrank();
@@ -374,18 +367,9 @@ contract SchnorrSetVerifierTest is Test {
 
     function test_RemoveSigner_VerifyIndexes() public {
         // Add three signers
-        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({
-            x: 1,
-            y: 2
-        });
-        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({
-            x: 3,
-            y: 4
-        });
-        LibSecp256k1.Point memory pubKey3 = LibSecp256k1.Point({
-            x: 5,
-            y: 6
-        });
+        LibSecp256k1.Point memory pubKey1 = LibSecp256k1.Point({x: 1, y: 2});
+        LibSecp256k1.Point memory pubKey2 = LibSecp256k1.Point({x: 3, y: 4});
+        LibSecp256k1.Point memory pubKey3 = LibSecp256k1.Point({x: 5, y: 6});
         address signer1 = pubKey1.toAddress();
         address signer2 = pubKey2.toAddress();
         address signer3 = pubKey3.toAddress();
@@ -394,32 +378,37 @@ contract SchnorrSetVerifierTest is Test {
         verifier.addSigner(pubKey1);
         verifier.addSigner(pubKey2);
         verifier.addSigner(pubKey3);
-        
+
         // Remove middle signer
         verifier.removeSigner(signer2);
-        
+
         // Verify indexes are updated correctly
         assertEq(verifier.getSignerIndex(signer1), 1);
         assertEq(verifier.getSignerIndex(signer3), 2);
         assertEq(verifier.getSignerIndex(signer2), 0); // removed signer should have index 0
-        
+
         // Remove first signer
         verifier.removeSigner(signer1);
-        
+
         // Verify indexes are updated correctly
         assertEq(verifier.getSignerIndex(signer3), 1);
         assertEq(verifier.getSignerIndex(signer1), 0); // removed signer should have index 0
         vm.stopPrank();
     }
 
-    function _addSigners(uint256 count) internal returns (uint256[] memory privateKeys) {
+    function _addSigners(
+        uint256 count
+    ) internal returns (uint256[] memory privateKeys) {
         privateKeys = new uint256[](count);
         for (uint256 i = 0; i < count; i++) {
             uint256 privateKey = uint256(keccak256(abi.encodePacked(i)));
             Vm.Wallet memory wallet = vm.createWallet(privateKey);
-            LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({x: wallet.publicKeyX, y: wallet.publicKeyY});
+            LibSecp256k1.Point memory pubKey = LibSecp256k1.Point({
+                x: wallet.publicKeyX,
+                y: wallet.publicKeyY
+            });
             verifier.addSigner(pubKey);
             privateKeys[i] = privateKey;
         }
     }
-} 
+}

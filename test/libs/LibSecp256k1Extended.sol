@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import {Vm} from "forge-std/Vm.sol";
 
-import {LibSecp256k1} from "src/libs/LibSecp256k1.sol";
+import {LibSecp256k1} from "scribe/src/libs/LibSecp256k1.sol";
 
 /**
  * @title LibSecp256k1Extended

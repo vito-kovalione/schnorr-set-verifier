@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import {console2} from "forge-std/console2.sol";
 import {StdStyle} from "forge-std/StdStyle.sol";
 
-import {LibSecp256k1} from "src/libs/LibSecp256k1.sol";
+import {LibSecp256k1} from "scribe/src/libs/LibSecp256k1.sol";
 
 import {LibSecp256k1Extended} from "./LibSecp256k1Extended.sol";
 

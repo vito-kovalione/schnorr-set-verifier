@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import {LibSecp256k1} from "./LibSecp256k1.sol";
+import {LibSecp256k1} from "scribe/src/libs/LibSecp256k1.sol";
 
 /// @title SchnorrSetVerifierLib
 /// @notice Library for managing a set of Schnorr public keys
